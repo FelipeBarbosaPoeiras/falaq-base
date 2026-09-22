@@ -31,7 +31,10 @@ class EventoController extends Controller
 
         // ⚠ BUG LEGADO: Carrega TODOS os registros da tabela no PHP
         $perguntas = Pergunta::where('evento_id', $id)
-            ->paginate(50);
+        ->where('is_public', true)
+        ->with('user')
+        ->latest()
+        ->paginate(10);
 
         return view('eventos.show', compact('evento', 'perguntas'));
     }
