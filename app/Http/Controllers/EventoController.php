@@ -18,14 +18,18 @@ class EventoController extends Controller
 
     public function show($id)
     {
-        $evento = Evento::find($id);
+        $evento = Evento::findOrFail($id);
 
-        $perguntas = Pergunta::all();
+        $perguntas = Pergunta::where('evento_id', $evento->id)
+            ->with('votos')
+            ->withCount('votos')
+            ->orderByDesc('votos_count')
+            ->latest()
+            ->get();
 
         return view('eventos.show', compact('evento', 'perguntas'));
     }
 
- 
     public function storePergunta(StorePerguntaRequest $request, $id)
     {
         $evento = Evento::findOrFail($id);
@@ -39,6 +43,13 @@ class EventoController extends Controller
 
         return redirect()->route('eventos.show', $evento->id)
             ->with('sucesso', 'Sua pergunta foi enviada com sucesso!');
+    }
+
+    public function votar(Pergunta $pergunta)
+    {
+        $pergunta->votos()->toggle(auth()->id());
+
+        return back();
     }
 
     public function destroyPergunta(Pergunta $pergunta)
